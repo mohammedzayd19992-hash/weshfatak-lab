@@ -28,8 +28,8 @@ from pathlib import Path
 SOURCE = Path(__file__).resolve().parent.parent
 
 # Folders and files that are published, relative to SOURCE.
-INCLUDE = ["README.md", "PROTOCOL.md", "RELEASE-CHECKLIST.md", "SHARING.md", ".gitignore", "app", "collector",
-           "database", "tools"]
+INCLUDE = ["README.md", "DEMO.md", "PROTOCOL.md", "RELEASE-CHECKLIST.md", "SHARING.md", ".gitignore", "app",
+           "collector", "database", "tools"]
 
 SKIP = [
     # secrets and keys

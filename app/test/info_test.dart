@@ -149,6 +149,56 @@ void main() {
     expect(find.text('Checked 14:05'), findsOneWidget);
   });
 
+  testWidgets(
+    'When nobody has checked for days, the study card says since when first',
+    (tester) async {
+      final checked = DateTime(2026, 11, 4, 20, 32);
+      final later = DateTime(2026, 11, 7, 10, 0);
+      await tester.pumpWidget(
+        _page(
+          StudyStatus(
+            items: const [],
+            section: InfoSection(
+              kind: 'status',
+              position: 1,
+              checkedAt: checked,
+            ),
+            now: later,
+          ),
+        ),
+      );
+      expect(
+        find.text(
+          'Not checked since Wed Nov 4, 2 days ago, so this may be out of date. Decisions on study can change from one day to the next.',
+        ),
+        findsOneWidget,
+      );
+      // "None in the last 7 days" would be untrue now: it says which 7 days.
+      expect(
+        find.textContaining('No announcement in the 7 days before Wed Nov 4'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('in the last 7 days'), findsNothing);
+      expect(find.textContaining('Checked '), findsNothing);
+
+      // Checked this morning: no warning.
+      await tester.pumpWidget(
+        _page(
+          StudyStatus(
+            items: const [],
+            section: InfoSection(
+              kind: 'status',
+              position: 1,
+              checkedAt: checked,
+            ),
+            now: checked.add(const Duration(hours: 5)),
+          ),
+        ),
+      );
+      expect(find.textContaining('Not checked since'), findsNothing);
+    },
+  );
+
   testWidgets('Study announcements show their source and how long ago', (
     tester,
   ) async {
@@ -173,7 +223,8 @@ void main() {
       find.text('تعليم الرياض يعلن تعليق الدراسة الحضورية حتى الخميس'),
       findsOneWidget,
     );
-    expect(find.text('صدى · 3 h ago'), findsOneWidget);
+    // A left-to-right mark after the Arabic name keeps "3 h ago" in one piece in English.
+    expect(find.text('صدى\u200E · 3 h ago'), findsOneWidget);
     expect(find.textContaining('No announcement'), findsNothing);
   });
 

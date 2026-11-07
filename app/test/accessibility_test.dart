@@ -67,9 +67,30 @@ void main() {
       final arabic = language == 'ar';
       String say(String en, String ar) => arabic ? ar : en;
 
-      // Home: the demo says it is the demo.
+      // Home: the demo says it is the demo, and the prototype line opens the About page.
       expect(find.textContaining(say('Demo:', 'نسخة تجريبية')), findsOneWidget);
       await _meetsGuidelines(tester);
+      // (The test font draws every letter a full square wide, so the line starts below the screen.)
+      final prototype = find.text(say('Prototype', 'نموذج أولي'));
+      await tester.ensureVisible(prototype);
+      await tester.pumpAndSettle();
+      await _meetsGuidelines(tester);
+      await tester.tap(prototype);
+      await tester.pumpAndSettle();
+      final about = _listOf(tester, find.text(say('What it is', 'ما هو')));
+      await _meetsGuidelines(tester);
+      await _scrollTo(
+        tester,
+        find.textContaining(say('shows made-up', 'تعرض جهات')),
+        list: about,
+      );
+      await _scrollTo(
+        tester,
+        find.text(say('Source code on GitHub', 'الشفرة المصدرية على GitHub')),
+        list: about,
+      );
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
 
       // An institution's news (with double text the first card starts below the screen).
       final card = find
@@ -156,6 +177,12 @@ void main() {
       await _scrollTo(tester, worried, list: page);
       await tester.tap(worried.first);
       await tester.pumpAndSettle();
+      // Under the AI's summary, the way to report a mistake in it.
+      await _scrollTo(
+        tester,
+        find.text(say('Report a mistake', 'الإبلاغ عن خطأ')),
+        list: page,
+      );
       await _scrollTo(
         tester,
         find.text(say('Replies on X', 'الردود على إكس')),

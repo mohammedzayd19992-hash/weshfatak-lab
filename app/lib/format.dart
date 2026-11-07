@@ -4,6 +4,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'brand.dart';
+import 'config.dart';
 import 'l10n.dart';
 
 /// "Oct 15" (Arabic: "15/10"), with the year added for older posts.
@@ -38,6 +39,26 @@ const openableSchemes = {'https', 'http', 'tel', 'mailto'};
 
 bool canOpen(String url) =>
     openableSchemes.contains(Uri.tryParse(url.trim())?.scheme.toLowerCase());
+
+/// The feedback page ([feedbackUrl]), with [title] and [body] filled in when it is a GitHub issue
+/// form; any other page (a form someone made) opens as it is.
+String feedbackLink({
+  required String title,
+  String body = '',
+  String page = feedbackUrl,
+}) {
+  final form = Uri.tryParse(page);
+  if (form == null ||
+      form.host != 'github.com' ||
+      !form.path.endsWith('/issues/new')) {
+    return page;
+  }
+  return form
+      .replace(
+        queryParameters: {'title': title, if (body.isNotEmpty) 'body': body},
+      )
+      .toString();
+}
 
 Future<void> openLink(BuildContext context, String url) async {
   final messenger = ScaffoldMessenger.of(context);

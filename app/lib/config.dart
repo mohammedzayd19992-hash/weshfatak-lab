@@ -15,3 +15,22 @@ const supabasePublishableKey = String.fromEnvironment(
 bool get isConfigured =>
     supabaseUrl.startsWith('https://') &&
     supabasePublishableKey.startsWith('sb_publishable_');
+
+/// The version the About page shows. A test keeps it equal to pubspec.yaml's.
+const appVersion = '1.8.0';
+
+/// "prototype" (the default) says so on the home screen and the About page, with how old the data
+/// is. A build for the public at large passes APP_STAGE=release.
+const appStage = String.fromEnvironment('APP_STAGE', defaultValue: 'prototype');
+
+bool get isPrototype => appStage == 'prototype';
+
+/// Where people send feedback and report a mistake in a summary: the public repository's issue form
+/// unless a build gives another page in FEEDBACK_URL (a form, for example). Never a personal address.
+const feedbackUrl = String.fromEnvironment(
+  'FEEDBACK_URL',
+  defaultValue:
+      'https://github.com/mohammedzayd19992-hash/weshfatak-lab/issues/new',
+);
+
+const sourceCodeUrl = 'https://github.com/mohammedzayd19992-hash/weshfatak-lab';

@@ -29,6 +29,11 @@ class UniNewsApi {
   /// Null while the database answers.
   static final offlineSince = ValueNotifier<DateTime?>(null);
 
+  /// When the collectors last brought anything: the newest post or Info check. The prototype line,
+  /// the About page and the alerts say how old the data is from it. Null in the demo and until the
+  /// home screen has loaded.
+  static final collectedAt = ValueNotifier<DateTime?>(null);
+
   static bool get demoMode => demoForTests ?? !isConfigured;
 
   /// Lets tests run the database path with a stand-in answer.
@@ -130,8 +135,12 @@ class UniNewsApi {
     ]);
   }
 
-  /// The Ministry of Education and the universities, in home screen order.
+  /// The Ministry of Education and the universities, in home screen order. Also sets
+  /// [collectedAt].
   static Future<List<Institution>> institutions() async {
+    final infoCheck = demoMode
+        ? null
+        : _lastInfoCheck(); // asked at the same time
     final rows = await _rows(
       'institutions',
       () => _db
@@ -140,7 +149,45 @@ class UniNewsApi {
           .order('position', ascending: true),
       demo.institutions,
     );
-    return rows.map(Institution.fromMap).toList();
+    final institutions = rows.map(Institution.fromMap).toList();
+    if (infoCheck != null) {
+      collectedAt.value = newestOf([
+        for (final institution in institutions) institution.lastPostAt,
+        await infoCheck,
+      ]);
+    }
+    return institutions;
+  }
+
+  /// When collector/info.py last ran, which it does at the end of every collection round. Null on a
+  /// database without the Info tables. Never throws.
+  static Future<DateTime?> _lastInfoCheck() async {
+    try {
+      final rows = await _rows(
+        'last_info_check',
+        () => _db
+            .from('info_sections')
+            .select('checked_at')
+            .order('checked_at', ascending: false, nullsFirst: false)
+            .limit(1),
+        () => const [],
+      );
+      final checked = rows.isEmpty ? null : rows.first['checked_at'];
+      return checked is String ? DateTime.tryParse(checked)?.toLocal() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @visibleForTesting
+  static DateTime? newestOf(Iterable<DateTime?> times) {
+    DateTime? newest;
+    for (final time in times) {
+      if (time != null && (newest == null || time.isAfter(newest))) {
+        newest = time;
+      }
+    }
+    return newest;
   }
 
   /// One page of an institution's news (the `institution_feed_page` database function). Only the

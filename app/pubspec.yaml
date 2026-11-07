@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Earlier phone APKs used codes 2002 (ARM64 split) and 2003 (university version).
 # Keep each new build above the last so it installs as an update. An ARM64-only build
 # (--split-per-abi) adds 2000: 1.3.0+2004 was shipped to phones as code 4004.
-version: 1.7.0+2009
+version: 1.8.0+2010
 
 environment:
   sdk: ^3.13.3

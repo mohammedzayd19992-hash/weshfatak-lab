@@ -27,6 +27,13 @@ git push
 
 `main` is always the newest version; each version is tagged (`v1.7.0`), and `lab-2026-10-30` marks the first lab copy.
 
+## Checks for 1.8.0 (7 November 2026)
+
+- Flutter analyze: no issues. Flutter tests: 45 passed; the whole demo app at double text size in English and Arabic, now through the About page and "Report a mistake", against Flutter's guidelines for touch targets, labels and text contrast.
+- Collector tests: 75 passed, without network.
+- The app's new links go only to this repository: its issue form (feedback) and its front page (source code). A build can point feedback elsewhere with `FEEDBACK_URL`.
+- The export scan: no private value, key, user folder or private email in the published files.
+
 ## Checks for 1.7.0 (7 November 2026)
 
 - Flutter analyze: no issues. Flutter tests: 36 passed, among them the whole demo app at double text size in English and Arabic against Flutter's guidelines for touch targets, labels and text contrast.

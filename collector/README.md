@@ -13,7 +13,7 @@ These scripts fill the database the app reads. Which channels exist for each ins
 | `stories.py` | joins one event's copies from X, the website, YouTube and the press into one story | nothing else |
 | `notes.py` | Codex reads new replies under each post: a face for every reply and the summary of them | the Codex app, signed in |
 | `info.py` | the Info page: is study suspended or online, the coming dates, where to ask, in the order people ask about them | nothing else |
-| `autopilot.py` | all of the above, in order, every 2.5 hours, by itself | `SUPABASE_SECRET_KEY` |
+| `autopilot.py` | all of the above, in order, every 2.5 hours, by itself (on hold for the prototype) | `SUPABASE_SECRET_KEY` |
 
 For replies and reviews they keep only the text, the time and the likes or stars, never who wrote them.
 
@@ -35,6 +35,8 @@ The Codex app's Supabase connector can also save, and `UPLOAD_VIA=codex` in `.en
 Since the rows hold other people's words and Codex may change the database here, they travel in base64: Codex copies letters it cannot read as instructions, and the database decodes them. Codex also runs without its shell, web search, browser or plugins for this. Four story links took 30 seconds this way.
 
 ## Keep it up to date by itself
+
+**On hold since 7 November 2026, for the prototype.** Nothing runs on a schedule (`install` has not been run), so the data stops at the last collection, 4 November, and the app says how old it is. To bring it up to date once, for example the day before showing the app, put the secret key in `.env` and run `python autopilot.py --once` (add `--skip x` to leave X out). To end the hold, run `python autopilot.py install`.
 
 ```powershell
 python autopilot.py               # a round now, then one every 2.5 hours; leave the window open

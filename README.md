@@ -1,6 +1,6 @@
 # WeshFatak · وش فاتك
 
-**Status: a student project, version 1.7.0.** It works end to end and is ready for phone testing; it is not on Google Play yet and it is not an official Ministry service. What is still missing is listed under "Is it ready?" in [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
+**Status: a student project, version 1.8.0, a prototype.** It works end to end on real data, but the data is a snapshot: the collectors and the 2.5-hour autopilot are built and tested and on hold for now, so the news, replies and study status stop at the last collection (4 November 2026). The app says so: its home screen reads "Prototype · data up to Wed Nov 4". How to show it is in [DEMO.md](DEMO.md). It is not on Google Play yet and it is not an official Ministry service; what is still missing for the public at large is under "Is it ready?" in [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
 
 WeshFatak shows the news of Saudi education institutions and what people said about each piece of it. The home screen lists the institutions (the Ministry of Education, Shaqra University, …), each with its latest news and how people replied to its news. Each institution has its own page with three tabs:
 
@@ -8,11 +8,11 @@ WeshFatak shows the news of Saudi education institutions and what people said ab
 - **Info**: the answers to what people ask under its posts, most asked first: whether study is suspended or online (the newest official word from the last week), the coming dates of its academic calendar counting down, where to ask (the official channels that open a ticket or answer the phone), its apps' ratings and reviews, then its numbers. Everything shows its source and opens it.
 - **Sources**: every channel found with [the source protocol](PROTOCOL.md), and whether it is collected yet.
 
-`collector/autopilot.py` keeps all of it up to date by itself, every 2.5 hours (see [collector/README.md](collector/README.md)). The app reads everything from the database when a page opens, so new news, numbers and dates reach phones without a new APK.
+`collector/autopilot.py` can keep all of it up to date by itself, every 2.5 hours (see [collector/README.md](collector/README.md)); for the prototype it is on hold, and `python autopilot.py --once` brings the data up to date once. The app reads everything from the database when a page opens, so new news, numbers and dates reach phones without a new APK.
 
 There are no accounts, comments or tags: everything is public and read-only. The bell on an institution's page sends a notification for each of its new posts (up to ten institutions), checked by Android in the background every 15 minutes or longer. Arabic phones get the whole app in Arabic, right to left; in the browser, add `?lang=ar` to the address.
 
-AI does one job, the faces and the "What people said" summary; every number, date and study announcement comes from plain code reading official sources, with its link.
+AI does one job, the faces and the "What people said" summary, and each summary has "Report a mistake"; every number, date and study announcement comes from plain code reading official sources, with its link.
 
 ## GitHub link
 
@@ -31,6 +31,7 @@ This public copy has the whole source but not the live database's address or key
 | `collector/` | The Python programs that collect news, replies, reviews, numbers and the Info page, have Codex read the replies, and run all of it every 2.5 hours |
 | `database/` | The Supabase SQL: tables, security rules, functions and checks |
 | `tools/` | `export_public.py`, which makes this public copy and refuses anything private |
+| `DEMO.md` | How to show the prototype: the day before, a three-minute walkthrough, questions for testers |
 | `PROTOCOL.md` | How every official channel of an institution is found and verified, and why the Info page is ordered as it is |
 | `RELEASE-CHECKLIST.md` | What each version changed and what was checked |
 
@@ -51,7 +52,7 @@ flutter test
 **With your own Supabase project:**
 
 1. In a new project's SQL Editor run, in this order: `database/schema.sql`, `seed.sql`, `migrate-to-institutions.sql`, `migrate-to-info.sql`, `migrate-close-accounts.sql`. Each check file tests the rules inside a transaction that is rolled back: `checks.sql` right after `seed.sql` (it still tests the members of that first version), `checks-info.sql` after `migrate-to-info.sql`; `migrate-close-accounts.sql` checks itself as it runs. In Authentication, turn off new sign-ups: the app has no accounts.
-2. Copy `app/config/example.json` to `app/config/live.json` and put in your project's URL and **publishable** key (Project Settings → API Keys). Git ignores `live.json`.
+2. Copy `app/config/example.json` to `app/config/live.json` and put in your project's URL and **publishable** key (Project Settings → API Keys). Git ignores `live.json`. Two more settings may go there: `FEEDBACK_URL`, the page that "Report a mistake" and the About page's feedback button open (the GitHub issue form when it is not given; a form of your own works too, never a personal address), and `APP_STAGE` set to `release`, which takes away the prototype line.
 3. Run or build with it:
 
    ```powershell
@@ -86,4 +87,4 @@ Each page the app loads is kept on the phone. Opened again without a connection,
 
 ## Supabase
 
-The free plan pauses a project after a week without use, and the app then shows only what phones kept. The autopilot's reads keep it awake; otherwise restore it from the dashboard (Project → Restore).
+The free plan pauses a project after a week without use, and the app then shows only what phones kept. With the autopilot on hold, only people opening the app keep it awake (and phones following an institution, which ask for new posts in the background). Open it at least once a week, and the day before showing it; if it does not load, restore the project from the dashboard (Project → Restore).

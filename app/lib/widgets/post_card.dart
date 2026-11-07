@@ -60,6 +60,21 @@ class PostCard extends StatelessWidget {
               detail: detail,
               selected: selectedFace,
               onSelect: onSelectFace,
+              onReport: detail
+                  ? () => openLink(
+                      context,
+                      feedbackLink(
+                        title: tr(
+                          'Mistake in "What people said": story ${post.id}',
+                          'خطأ في «ماذا قال الناس»: الخبر ${post.id}',
+                        ),
+                        body: tr(
+                          'Story: ${post.sourceLink}\n\nWhat is wrong:\n',
+                          'الخبر: ${post.sourceLink}\n\nما الخطأ:\n',
+                        ),
+                      ),
+                    )
+                  : null,
             ),
           ],
           const SizedBox(height: 4),

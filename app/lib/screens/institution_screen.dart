@@ -59,7 +59,17 @@ class _InstitutionScreenState extends State<InstitutionScreen> {
         return;
       }
       await alerts.follow(_institution.id, _institution.displayName);
-      say(tr('You will be told about new posts.', 'سيصلك تنبيه بكل خبر جديد.'));
+      say(
+        dataIsOld(UniNewsApi.collectedAt.value)
+            ? tr(
+                'You will be told about new posts. Collection is paused in this prototype, so none will come until it starts again.',
+                'سيصلك تنبيه بكل خبر جديد. الجمع متوقف في هذا النموذج الأولي، فلن تصل أخبار جديدة حتى يعود.',
+              )
+            : tr(
+                'You will be told about new posts.',
+                'سيصلك تنبيه بكل خبر جديد.',
+              ),
+      );
     } on StateError catch (error) {
       say(error.message);
     } catch (_) {

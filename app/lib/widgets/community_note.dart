@@ -18,6 +18,7 @@ class CommunityNoteBox extends StatelessWidget {
     this.detail = false,
     this.selected,
     this.onSelect,
+    this.onReport,
   });
 
   final CommunityNote? note; // null until the notes writer has run
@@ -25,6 +26,9 @@ class CommunityNoteBox extends StatelessWidget {
   final bool detail;
   final String? selected;
   final ValueChanged<String?>? onSelect;
+
+  /// Opens the feedback page about this summary (on the post screen only).
+  final VoidCallback? onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +133,30 @@ class CommunityNoteBox extends StatelessWidget {
               ),
               style: const TextStyle(color: Brand.muted, fontSize: 11.5),
             ),
+            if (onReport != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Semantics(
+                  hint: tr(
+                    'Opens a page to tell the team what is wrong',
+                    'يفتح صفحة لإخبار الفريق بالخطأ',
+                  ),
+                  child: TextButton.icon(
+                    onPressed: onReport,
+                    icon: const Icon(Icons.flag_outlined, size: 17),
+                    label: Text(tr('Report a mistake', 'الإبلاغ عن خطأ')),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Brand.sand,
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: const Size(48, 48),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ],
       ),

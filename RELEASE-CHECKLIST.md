@@ -1,5 +1,39 @@
 # WeshFatak · وش فاتك — session checklist
 
+## 1.8.0 — a prototype, with the automation on hold (7 November 2026)
+
+Asked for: hold the automation, but make the app ready as a prototype.
+
+- [x] **The data's date where it matters.** With the collectors off, the data stops at 4 November. The home screen now reads "Prototype · data up to Wed Nov 4" (or "updated 3 h ago" while the collectors run), from the newest post or Info check, so it changes by itself when collection starts again. Tapping it opens the About page.
+- [x] **A study card that cannot pass for today's.** The Ministry's card still listed Riyadh's and Taif's move online "until Thursday" (5 November). When nobody has checked for a day, it now begins "Not checked since Wed Nov 4, 3 days ago, so this may be out of date", and "no announcement" says which 7 days it means.
+- [x] **About page:** what WeshFatak is; that it is a student prototype, not an official service; how old the data is; where everything comes from; what AI does and does not do; what stays on the phone; the version, feedback and the source code.
+- [x] **Report a mistake** under "What people said" on every story page, and "Send feedback" on the About page. Both open the public repository's issue form, with the story filled in, or the page a build gives as `FEEDBACK_URL`.
+- [x] **Alerts while paused:** turning on the bell says no news will come until collection starts again.
+- [x] **A display fix:** in English, an Arabic outlet's name before "3 days ago" under a study announcement showed as "3 · المرصد days ago".
+- [x] **The automation on hold:** README, collector/README and DEMO.md say so, and `python autopilot.py --once` brings the data up to date once. Nothing was installed or scheduled.
+- [x] **DEMO.md:** the day before (Supabase's free plan pauses after a week without visits), a three-minute walkthrough, questions for testers, showing it on a laptop.
+- [x] Version 1.8.0+2010 (phone code 4010 for the ARM64 APK), signed with the same certificate, so it installs over 1.7.0.
+- [ ] **You, in the Supabase dashboard:** turn off sign-ups (Authentication → Sign In / Providers). On 7 November they were still on.
+- [ ] Install `apk/WeshFatak-1.8.0-arm64.apk` and go through DEMO.md's three minutes once on the phone, a minute of it with TalkBack and the largest text.
+
+Checks: Flutter analyze clean; 45 Flutter tests pass, among them the whole demo app at double text size in English and Arabic, now through the About page and "Report a mistake", against Flutter's touch target, label and contrast guidelines; 75 collector tests pass; the web build checked in the browser at phone size against the live database (the prototype line, the About page, the study card's note).
+
+### Is it a ready prototype?
+
+**Yes, to show and to test with people.** It runs on real data from every collected channel, says honestly how old that data is, explains itself on the About page, takes feedback, works offline, in Arabic, with a screen reader and at large text, and the public source runs on its own as a demo.
+
+**Still missing for the public at large:**
+
+1. **The data has to keep flowing.** On hold by choice. Ending the hold needs the secret key and `python autopilot.py install` on a computer that stays on (X needs its signed-in Chrome), or the collectors that need no browser moved to a schedule in the cloud.
+2. **Turn off sign-ups** (above).
+3. **Google Play:** a protected upload key instead of the debug certificate, an Android App Bundle, a privacy policy page (the About page's privacy part is a start), the Data safety form, a content rating, store screenshots and text, a support contact, and for a personal developer account made after 13 November 2023 a closed test with 12 testers for 14 days.
+4. **Coverage:** the regional education departments, Shaqra's second-semester dates when announced, more universities.
+5. **X:** its rules forbid automated collection, and it can lock the collecting account. Replies are the heart of "What people said".
+6. **Feedback without an account:** "Report a mistake" opens GitHub's issue form, which needs a GitHub account; a form of the project's own (`FEEDBACK_URL`) would reach more people.
+7. **Not checked on a real phone yet:** TalkBack and large text, notifications arriving, offline use.
+8. **No alert when a collection round fails.**
+9. **iPhone:** not built (it needs a Mac and an Apple developer account).
+
 ## 1.7.0 — public on GitHub, accessible, works offline, accounts closed (7 November 2026)
 
 Asked for: update the public GitHub with 1.6.0 and hide what should not be shared; accessibility for people who need it; security where needed; connectivity; and what is still missing to call it ready.

@@ -89,6 +89,13 @@ String timeAgo(DateTime time, {DateTime? now}) {
   );
 }
 
+/// The collectors run every 2.5 hours when they are on, so data a day old means they are off.
+const dataGetsOldAfter = Duration(hours: 24);
+
+/// Whether data collected at [at] is too old to be taken as current.
+bool dataIsOld(DateTime? at, {DateTime? now}) =>
+    at != null && (now ?? DateTime.now()).difference(at) > dataGetsOldAfter;
+
 /// "14:05" today, else "2/11 21:30".
 String clock(DateTime time, {DateTime? now}) {
   final hours = time.hour.toString().padLeft(2, '0');
@@ -228,7 +235,8 @@ class InfoSubtitle extends StatelessWidget {
 }
 
 /// Is study suspended, online or back in person? The newest official word about it from the
-/// last week, or a plain line saying there was none.
+/// last week, or a plain line saying there was none. When nobody has looked for a day (the
+/// collectors are off), it says since when first, so an old answer is not taken for today's.
 class StudyStatus extends StatelessWidget {
   const StudyStatus({super.key, required this.items, this.section, this.now});
 
@@ -239,18 +247,51 @@ class StudyStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final checked = section?.checkedAt;
+    final old = dataIsOld(checked, now: now);
+    final day = checked == null ? '' : dayLabel(checked, now: now);
+    final ago = checked == null ? '' : timeAgo(checked, now: now);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         InfoSectionTitle(
           tr('Study: in person or online?', 'الدراسة: حضوري أم عن بعد؟'),
-          trailing: checked == null
+          trailing: checked == null || old
               ? null
               : tr(
                   'Checked ${clock(checked, now: now)}',
                   'آخر تحقق ${clock(checked, now: now)}',
                 ),
         ),
+        if (old)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            decoration: BoxDecoration(
+              color: Brand.sand.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Brand.sand.withValues(alpha: 0.55)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.history_rounded, color: Brand.sand, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    tr(
+                      'Not checked since $day, $ago, so this may be out of date. Decisions on study can change from one day to the next.',
+                      'لم يُتحقق منذ $day، $ago، فقد لا يكون هذا محدّثًا. قرارات الدراسة قد تتغير بين يوم وآخر.',
+                    ),
+                    style: const TextStyle(
+                      color: Brand.ink,
+                      fontSize: 13.5,
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (items.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
@@ -268,10 +309,15 @@ class StudyStatus extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        tr(
-                          'No announcement in the last 7 days about suspending study or moving it online.',
-                          'لا إعلان في آخر 7 أيام عن تعليق الدراسة أو تحويلها عن بعد.',
-                        ),
+                        old
+                            ? tr(
+                                'No announcement in the 7 days before $day about suspending study or moving it online.',
+                                'لا إعلان في الأيام السبعة التي سبقت $day عن تعليق الدراسة أو تحويلها عن بعد.',
+                              )
+                            : tr(
+                                'No announcement in the last 7 days about suspending study or moving it online.',
+                                'لا إعلان في آخر 7 أيام عن تعليق الدراسة أو تحويلها عن بعد.',
+                              ),
                         style: const TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
@@ -362,7 +408,9 @@ class _Announcement extends StatelessWidget {
                       child: Text(
                         published == null
                             ? item.sourceName
-                            : '${item.sourceName} · ${timeAgo(published, now: now)}',
+                            // In English a left-to-right mark after an Arabic outlet's name
+                            // keeps "3 days ago" whole instead of "3 · Sabq days ago".
+                            : '${item.sourceName}${isArabic ? '' : '\u200E'} · ${timeAgo(published, now: now)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

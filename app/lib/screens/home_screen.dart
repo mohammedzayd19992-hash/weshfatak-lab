@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../app_name.dart';
 import '../brand.dart';
+import '../config.dart';
 import '../data.dart';
 import '../format.dart';
 import '../l10n.dart';
 import '../models.dart';
 import '../widgets/mood.dart';
+import '../widgets/prototype.dart';
 import '../widgets/status.dart';
 import 'alerts_screen.dart';
 import 'institution_screen.dart';
@@ -122,6 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 1.4,
                         ),
                       ),
+                      if (isPrototype) ...[
+                        const SizedBox(height: 12),
+                        const PrototypeNote(),
+                      ],
                     ],
                   ),
                 ),
