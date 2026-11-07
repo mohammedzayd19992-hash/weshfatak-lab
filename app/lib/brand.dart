@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_name.dart';
 
-/// UniNews colors: night green surfaces, the university green and a sand accent.
+/// WeshFatak colors: night green surfaces, the education green and a sand accent.
 abstract final class Brand {
   static const night = Color(0xFF050907);
   static const surface = Color(0xFF0B120E);
@@ -283,8 +283,11 @@ class SourceAvatar extends StatelessWidget {
   final String? url;
   final double size;
 
+  // A picture beside a name it shows, so screen readers skip it.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ExcludeSemantics(child: _picture());
+
+  Widget _picture() {
     if (url == null) return UniLogo(size: size);
     return Container(
       width: size,
@@ -306,71 +309,3 @@ class SourceAvatar extends StatelessWidget {
     );
   }
 }
-
-/// A member's first initial on a color picked from their account id.
-class InitialAvatar extends StatelessWidget {
-  const InitialAvatar({
-    super.key,
-    required this.name,
-    required this.seed,
-    this.size = 36,
-  });
-
-  final String name;
-  final String seed;
-  final double size;
-
-  static const _colors = [
-    Color(0xFF1B8354),
-    Color(0xFF2D6E9B),
-    Color(0xFF94622E),
-    Color(0xFF6A51A3),
-    Color(0xFFA13F55),
-    Color(0xFF3B7D6C),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final trimmed = name.trim();
-    final letter = trimmed.isEmpty
-        ? '?'
-        : trimmed.characters.first.toUpperCase();
-    final color =
-        _colors[seed.codeUnits.fold(0, (a, b) => a + b) % _colors.length];
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.lerp(color, Colors.white, 0.15)!, color],
-        ),
-      ),
-      child: Text(
-        letter,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: size * 0.42,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-const categoryIcons = {
-  'Academic': Icons.menu_book_outlined,
-  'Administrative': Icons.account_balance_outlined,
-  'Activities': Icons.celebration_outlined,
-  'Exams': Icons.edit_note_outlined,
-};
-
-/// Short audience names so every choice fits in the bottom bar without scrolling.
-const audienceLabels = {
-  'Students': 'Students',
-  'Teaching Staff': 'Faculty',
-  'Administrative Staff': 'Staff',
-};

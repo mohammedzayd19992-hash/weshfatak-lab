@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../brand.dart';
+import '../l10n.dart';
 
 /// A soft light sweeping across [child] while content loads.
 class Shimmer extends StatefulWidget {
@@ -81,7 +82,13 @@ class PostSkeleton extends StatelessWidget {
   const PostSkeleton({super.key});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => Semantics(
+    label: tr('Loading the news', 'جارٍ تحميل الأخبار'),
+    excludeSemantics: true,
+    child: _shape(),
+  );
+
+  Widget _shape() => Container(
     margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(

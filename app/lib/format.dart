@@ -4,15 +4,25 @@ import 'package:intl/intl.dart' as intl;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'brand.dart';
+import 'l10n.dart';
 
-/// "Oct 15", with the year added for older posts.
-String shortDate(DateTime time, {DateTime? now}) =>
-    time.year == (now ?? DateTime.now()).year
-    ? intl.DateFormat('MMM d').format(time)
-    : intl.DateFormat('MMM d, y').format(time);
+/// "Oct 15" (Arabic: "15/10"), with the year added for older posts.
+String shortDate(DateTime time, {DateTime? now}) {
+  final thisYear = time.year == (now ?? DateTime.now()).year;
+  if (isArabic) {
+    return thisYear
+        ? '${time.day}/${time.month}'
+        : '${time.day}/${time.month}/${time.year}';
+  }
+  return intl.DateFormat(thisYear ? 'MMM d' : 'MMM d, y').format(time);
+}
 
 final _rtlLetter = RegExp(r'[֐-׿؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]');
 final _anyLetter = RegExp(r'[A-Za-zÀ-ɏ֐-׿؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]');
+
+/// Whether the reader asked the phone for large text (beyond about 135%).
+bool largeText(BuildContext context) =>
+    MediaQuery.textScalerOf(context).scale(10) > 13.5;
 
 /// Right-to-left when the first letter is Arabic (or Hebrew), else left-to-right.
 TextDirection directionOf(String text) {
@@ -22,18 +32,29 @@ TextDirection directionOf(String text) {
       : TextDirection.ltr;
 }
 
+/// The only kinds of link the app opens: web pages, phone numbers and email addresses. Links come
+/// from collected posts and the database, so anything else (an app intent, a script) is refused.
+const openableSchemes = {'https', 'http', 'tel', 'mailto'};
+
+bool canOpen(String url) =>
+    openableSchemes.contains(Uri.tryParse(url.trim())?.scheme.toLowerCase());
+
 Future<void> openLink(BuildContext context, String url) async {
   final messenger = ScaffoldMessenger.of(context);
   var opened = false;
-  try {
-    opened = await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
-  } catch (_) {}
+  if (canOpen(url)) {
+    try {
+      opened = await launchUrl(
+        Uri.parse(url.trim()),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {}
+  }
   if (!opened) {
     messenger.showSnackBar(
-      const SnackBar(content: Text('The link could not be opened.')),
+      SnackBar(
+        content: Text(tr('The link could not be opened.', 'تعذر فتح الرابط.')),
+      ),
     );
   }
 }

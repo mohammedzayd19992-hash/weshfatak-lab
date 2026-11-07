@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import 'l10n.dart';
+
 String appNameFor(Locale locale) =>
     locale.languageCode == 'ar' ? 'وش فاتك' : 'WeshFatak';
 
-String appName(BuildContext context) =>
-    appNameFor(WidgetsBinding.instance.platformDispatcher.locale);
+String appName(BuildContext context) => appNameFor(appLocale);

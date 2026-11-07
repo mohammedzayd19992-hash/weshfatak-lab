@@ -1,0 +1,107 @@
+[
+ {
+  "organization": "Ministry of Education",
+  "section": "people",
+  "label": "طلاب وطالبات التعليم العام",
+  "value": 6815504,
+  "unit": null,
+  "period": "1446هـ",
+  "breakdown": [],
+  "source_name": "صحيفة الوطن، 14 يونيو 2026 (بيانات التعليم العام)",
+  "source_url": "https://www.alwatan.com.sa/ampArticle/1181823",
+  "position": 10
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "people",
+  "label": "المعلمون والمعلمات",
+  "value": 415896,
+  "unit": null,
+  "period": "2025",
+  "breakdown": [
+   {
+    "label": "معلمات",
+    "value": 230207
+   },
+   {
+    "label": "معلمون",
+    "value": 185689
+   }
+  ],
+  "source_name": "صحيفة الوطن، 15 أغسطس 2026 (تقرير وزارة التعليم 2025)",
+  "source_url": "https://www.alwatan.com.sa/article/1184186",
+  "position": 11
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "people",
+  "label": "طلاب التعليم العالي",
+  "value": 1360000,
+  "unit": null,
+  "period": "2023",
+  "breakdown": [],
+  "source_name": "الموسوعة السعودية",
+  "source_url": "https://saudipedia.com/en/universities-in-saudi-arabia",
+  "position": 12
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "study",
+  "label": "مدارس التعليم العام",
+  "value": 32000,
+  "unit": null,
+  "period": "1446هـ",
+  "breakdown": [],
+  "source_name": "صحيفة الوطن، 14 يونيو 2026 (بيانات التعليم العام)",
+  "source_url": "https://www.alwatan.com.sa/ampArticle/1181823",
+  "position": 20
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "study",
+  "label": "الجامعات الحكومية",
+  "value": 29,
+  "unit": null,
+  "period": "غير مؤرخ",
+  "breakdown": [],
+  "source_name": "الموسوعة السعودية",
+  "source_url": "https://saudipedia.com/en/universities-in-saudi-arabia",
+  "position": 21
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "study",
+  "label": "الجامعات والكليات الأهلية",
+  "value": 38,
+  "unit": null,
+  "period": "غير مؤرخ",
+  "breakdown": [],
+  "source_name": "الموسوعة السعودية",
+  "source_url": "https://saudipedia.com/en/universities-in-saudi-arabia",
+  "position": 22
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "study",
+  "label": "نسبة الالتحاق بالتعليم العالي",
+  "value": 83.88,
+  "unit": "%",
+  "period": "2026",
+  "breakdown": [],
+  "source_name": "صحيفة عكاظ، 29 مارس 2026 (معهد اليونسكو للإحصاء)",
+  "source_url": "https://www.okaz.com.sa/local/na/2241852",
+  "position": 23
+ },
+ {
+  "organization": "Ministry of Education",
+  "section": "study",
+  "label": "المبتعثون في برنامج الابتعاث (أكثر من)",
+  "value": 56000,
+  "unit": null,
+  "period": "2026",
+  "breakdown": [],
+  "source_name": "صحيفة عكاظ، 29 مارس 2026",
+  "source_url": "https://www.okaz.com.sa/local/na/2241852",
+  "position": 24
+ }
+]

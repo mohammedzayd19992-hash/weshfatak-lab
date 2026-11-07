@@ -1,0 +1,82 @@
+{
+ "organization": "Ministry of Education",
+ "dates": {
+  "note": "تقويم التعليم العام 1448هـ. لمكة المكرمة والمدينة المنورة وجدة والطائف مرونة في بعض المواعيد، وقد تعلن إدارات التعليم إجازات إضافية.",
+  "items": [
+   {
+    "title": "إجازة الخريف",
+    "starts_on": "2026-11-20",
+    "ends_on": "2026-11-28",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "إجازة منتصف العام",
+    "starts_on": "2027-01-08",
+    "ends_on": "2027-01-16",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "إجازة يوم التأسيس",
+    "starts_on": "2027-02-19",
+    "ends_on": "2027-02-22",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "إجازة عيد الفطر",
+    "starts_on": "2027-02-26",
+    "ends_on": "2027-03-13",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "إجازة عيد الأضحى",
+    "starts_on": "2027-05-07",
+    "ends_on": "2027-05-22",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "إجازة نهاية العام الدراسي",
+    "starts_on": "2027-06-24",
+    "ends_on": "2027-08-21",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   },
+   {
+    "title": "عودة الطلاب للعام الدراسي 1449هـ",
+    "starts_on": "2027-08-22",
+    "source_name": "أرقام، 5 أغسطس 2025 (تقويم وزارة التعليم 1447 و1448هـ)",
+    "source_url": "https://www.argaam.com/ar/article/articledetail/id/1833639"
+   }
+  ]
+ },
+ "help": {
+  "note": "الرد على منشور في إكس لا يصدر رقم طلب. تواصل يصدر لك تذكرة تتابعها.",
+  "items": [
+   {
+    "title": "شكوى أو استفسار أو اقتراح",
+    "detail": "منصة تواصل تصل إلى قطاعات الوزارة وإدارات التعليم والجامعات، وتصدر لك تذكرة تتابع بها طلبك.",
+    "link": "https://tawasul.moe.gov.sa/",
+    "source_name": "وزارة التعليم - خدمة تواصل",
+    "source_url": "https://www.moe.gov.sa/ar/contactus/pages/tawasul.aspx"
+   },
+   {
+    "title": "الاتصال بالوزارة",
+    "detail": "مركز الاتصال الموحد لخدمة تواصل.",
+    "link": "tel:19996",
+    "source_name": "وزارة التعليم - خدمة تواصل",
+    "source_url": "https://www.moe.gov.sa/ar/contactus/pages/tawasul.aspx"
+   },
+   {
+    "title": "بلاغ عن خدمة إلكترونية لا تعمل",
+    "detail": "تطبيق الدعم الموحد من وزارة التعليم لرفع بلاغات الخدمات ومتابعة حالتها.",
+    "link": "https://apps.apple.com/sa/app/id6739730553",
+    "source_name": "App Store - الدعم الموحد",
+    "source_url": "https://apps.apple.com/sa/app/id6739730553"
+   }
+  ]
+ }
+}

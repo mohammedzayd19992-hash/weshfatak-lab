@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../brand.dart';
+import '../l10n.dart';
 import '../models.dart';
 import 'skeleton.dart';
 
@@ -22,7 +23,9 @@ class NetImage extends StatelessWidget {
     height: double.infinity,
     frameBuilder: (context, child, frame, synchronous) => AnimatedOpacity(
       opacity: synchronous || frame != null ? 1 : 0,
-      duration: const Duration(milliseconds: 300),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       child: child,
     ),
@@ -150,7 +153,15 @@ class _MediaTile extends StatelessWidget {
     final item = media[index];
     return Semantics(
       button: true,
-      label: item.alt ?? 'Image ${index + 1} of ${media.length}',
+      label:
+          item.alt ??
+          tr(
+            'Image ${index + 1} of ${media.length}',
+            'الصورة ${index + 1} من ${media.length}',
+          ),
+      hint: tr('Opens it full screen', 'يعرضها بملء الشاشة'),
+      excludeSemantics: true,
+      onTap: () => openMediaViewer(context, media, index, heroTag),
       child: GestureDetector(
         onTap: () => openMediaViewer(context, media, index, heroTag),
         child: Stack(
@@ -261,7 +272,7 @@ class _MediaViewerState extends State<MediaViewer> {
                   IconButton.filledTonal(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Close',
+                    tooltip: tr('Close', 'إغلاق'),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white12,
                       foregroundColor: Colors.white,

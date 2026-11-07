@@ -1,0 +1,6 @@
+# Your X sign-in, the secret key and the collected replies stay on this computer.
+x-profile/
+data/
+logs/
+.env
+__pycache__/

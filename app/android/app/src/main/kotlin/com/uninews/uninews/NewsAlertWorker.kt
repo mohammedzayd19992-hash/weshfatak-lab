@@ -27,7 +27,8 @@ class NewsAlertWorker(context: Context, params: WorkerParameters) : Worker(conte
             val alert = alerts.getJSONObject(i)
             if (!alert.optBoolean("enabled", true)) continue
             val id = alert.getString("id")
-            val filters = alert.getJSONObject("filters")
+            val organization = alert.optLong("organizationId", -1)
+            if (organization < 0) continue
             val since = alert.getString("since")
             val cursorKey = "cursor.$id.$since"
             var cursor = prefs.getLong(cursorKey, 0)
@@ -37,7 +38,8 @@ class NewsAlertWorker(context: Context, params: WorkerParameters) : Worker(conte
                 var pages = 0
                 do {
                     val uri = Uri.parse("$base/rest/v1/news_items").buildUpon()
-                        .appendQueryParameter("select", "news_id,body,collected_at,sources(name),news_tags(tags(name,tag_group))")
+                        .appendQueryParameter("select", "news_id,body,collected_at,sources!inner(name,organization_id)")
+                        .appendQueryParameter("sources.organization_id", "eq.$organization")
                         .appendQueryParameter("collected_at", "gte.$since")
                         .appendQueryParameter("news_id", "gt.$cursor")
                         .appendQueryParameter("order", "news_id.asc")
@@ -54,31 +56,17 @@ class NewsAlertWorker(context: Context, params: WorkerParameters) : Worker(conte
                     for (rowIndex in 0 until rows.length()) {
                         val row = rows.getJSONObject(rowIndex)
                         val newsId = row.getLong("news_id")
-                        val audiences = mutableSetOf<String>()
-                        val categories = mutableSetOf<String>()
-                        val tags = row.optJSONArray("news_tags") ?: JSONArray()
-                        for (tagIndex in 0 until tags.length()) {
-                            val tag = tags.getJSONObject(tagIndex).optJSONObject("tags") ?: continue
-                            when (tag.optString("tag_group")) {
-                                "audience" -> audiences.add(tag.getString("name"))
-                                "category" -> categories.add(tag.getString("name"))
-                            }
-                        }
-                        // A removed or paused filter must stop delivery even during a network request.
+                        // A removed or paused alert must stop delivery even during a network request.
                         val latest = JSONArray(prefs.getString("alerts", "[]"))
                         val stillEnabled = (0 until latest.length()).any { n ->
                             val current = latest.getJSONObject(n)
                             current.optString("id") == id && current.optString("since") == since && current.optBoolean("enabled", true)
                         }
                         if (!stillEnabled) break
-                        if (AlertRules.matches(audiences, categories,
-                            strings(filters.optJSONArray("audiences")), strings(filters.optJSONArray("categories")),
-                            alert.optBoolean("importantOnly", true))) {
-                            // Overlapping saved filters deliver each story once.
-                            if (!prefs.getBoolean("delivered.$newsId", false)) {
-                                showNotification(newsId, row.getString("body"), row.getJSONObject("sources").getString("name"))
-                                prefs.edit().putBoolean("delivered.$newsId", true).commit()
-                            }
+                        // Each story alerts once, even when it is collected again.
+                        if (!prefs.getBoolean("delivered.$newsId", false)) {
+                            showNotification(newsId, row.getString("body"), row.getJSONObject("sources").getString("name"))
+                            prefs.edit().putBoolean("delivered.$newsId", true).commit()
                         }
                         cursor = newsId
                         prefs.edit().putLong(cursorKey, cursor).commit()
@@ -96,7 +84,7 @@ class NewsAlertWorker(context: Context, params: WorkerParameters) : Worker(conte
         val arabic = if (Build.VERSION.SDK_INT >= 24) context.resources.configuration.locales[0].language == "ar"
             else @Suppress("DEPRECATION") (context.resources.configuration.locale.language == "ar")
         if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel(
-            CHANNEL, if (arabic) "أخبار الفلاتر المحفوظة" else "Saved filter news", NotificationManager.IMPORTANCE_DEFAULT))
+            CHANNEL, if (arabic) "أخبار الجهات التي تتابعها" else "News from followed institutions", NotificationManager.IMPORTANCE_DEFAULT))
         val intent = Intent(context, MainActivity::class.java)
             .setAction("news.$id").putExtra("news_id", id)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -115,8 +103,6 @@ class NewsAlertWorker(context: Context, params: WorkerParameters) : Worker(conte
         const val PREFS = "weshfatak_news_alerts"
         const val CHANNEL = "saved_filter_news"
         private const val WORK = "weshfatak_news_checks"
-        fun strings(array: JSONArray?): Set<String> = if (array == null) emptySet()
-            else (0 until array.length()).map { array.getString(it) }.toSet()
         fun schedule(context: Context, enabled: Boolean) {
             val manager = WorkManager.getInstance(context)
             if (!enabled) { manager.cancelUniqueWork(WORK); return }

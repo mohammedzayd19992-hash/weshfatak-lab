@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,12 +8,11 @@ import 'app_state.dart';
 import 'app_name.dart';
 import 'brand.dart';
 import 'config.dart';
-import 'lab_preview.dart';
 import 'data.dart';
+import 'l10n.dart';
 import 'news_alerts.dart';
+import 'screens/home_screen.dart';
 import 'screens/post_screen.dart';
-import 'screens/feed_screen.dart';
-import 'screens/welcome_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,25 +25,23 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  if (!isConfigured) {
-    runApp(const LabPreviewApp());
-    return;
-  }
   final prefs = await SharedPreferences.getInstance();
-  // Signs people in from the confirmation email link (see authRedirectUrl).
-  await Supabase.initialize(
-    url: supabaseUrl,
-    publishableKey: supabasePublishableKey,
-  );
-  final state = AppState(prefs)..onMessage = _showMessage;
-  runApp(
-    AppScope(
-      state: state,
-      child: UniNewsApp(
-        startWithWelcome: !state.welcomeDone && !state.signedIn,
+  UniNewsApi.keepOn(prefs);
+  // Without a Supabase project (config.dart) the app runs the demo and never touches the network.
+  if (isConfigured) {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: supabasePublishableKey,
+      // The app has no accounts: it never signs in, so it reads no sign-in links either.
+      authOptions: const FlutterAuthClientOptions(
+        detectSessionInUri: false,
+        autoRefreshToken: false,
+        persistSession: false,
       ),
-    ),
-  );
+    );
+  }
+  final state = AppState(prefs);
+  runApp(AppScope(state: state, child: const UniNewsApp()));
   if (state.alerts.supported) {
     NewsAlerts.channel.setMethodCallHandler((call) async {
       if (call.method == 'openPost' && call.arguments is int) {
@@ -57,7 +55,10 @@ Future<void> main() async {
         if (id != null) await _openAlertPost(id);
       } catch (_) {
         _showMessage(
-          'Could not start news alerts. Open News alerts to try again.',
+          tr(
+            'Could not start news alerts. Open News alerts to try again.',
+            'تعذر تشغيل تنبيهات الأخبار. افتح التنبيهات وحاول مرة أخرى.',
+          ),
         );
       }
     });
@@ -75,7 +76,10 @@ Future<void> _openAlertPost(int id) async {
     );
   } catch (_) {
     _showMessage(
-      'Could not open this story. Check your connection and try again.',
+      tr(
+        'Could not open this story. Check your connection and try again.',
+        'تعذر فتح الخبر. تحقق من اتصالك وحاول مرة أخرى.',
+      ),
     );
   }
 }
@@ -91,22 +95,19 @@ void _showMessage(String text) {
 }
 
 class UniNewsApp extends StatelessWidget {
-  const UniNewsApp({super.key, required this.startWithWelcome});
-
-  final bool startWithWelcome;
+  const UniNewsApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     onGenerateTitle: appName,
-    builder: (context, child) => Banner(
-      message: 'IN DEVELOPMENT',
-      location: BannerLocation.topEnd,
-      child: child!,
-    ),
     navigatorKey: _navigator,
     debugShowCheckedModeBanner: false,
     theme: buildTheme(),
     scaffoldMessengerKey: _messenger,
-    home: startWithWelcome ? const WelcomeScreen() : const FeedScreen(),
+    // Arabic phones get Arabic text and a right-to-left layout.
+    locale: appLocale,
+    supportedLocales: const [Locale('en'), Locale('ar')],
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
+    home: const HomeScreen(),
   );
 }

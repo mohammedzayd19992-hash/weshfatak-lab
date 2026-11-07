@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import '../app_state.dart';
 import '../brand.dart';
 import '../data.dart';
 import '../format.dart';
+import '../l10n.dart';
 import '../models.dart';
-import '../widgets/auth_sheet.dart';
+import '../widgets/mood.dart';
 import '../widgets/post_card.dart';
+import '../widgets/status.dart';
 
-/// One post with the replies people left on X and the comments in the app.
-/// Guests read; members can also comment.
+/// One post with how people felt about it and the replies they left. Tapping a face shows
+/// only the replies with that face.
 class PostScreen extends StatefulWidget {
   const PostScreen({super.key, required this.post});
 
@@ -23,11 +23,8 @@ class PostScreen extends StatefulWidget {
 class _PostScreenState extends State<PostScreen> {
   late NewsPost _post = widget.post;
   List<PublicReply>? _replies;
-  List<Comment>? _comments;
   Object? _error;
-  bool _sending = false;
-  final _input = TextEditingController();
-  final _focus = FocusNode();
+  String? _face;
   final _scroll = ScrollController();
 
   @override
@@ -38,24 +35,20 @@ class _PostScreenState extends State<PostScreen> {
 
   @override
   void dispose() {
-    _input.dispose();
-    _focus.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
   Future<void> _refresh() async {
     try {
-      final (post, replies, comments) = await (
+      final (post, replies) = await (
         UniNewsApi.post(_post.id),
         UniNewsApi.replies(_post.id),
-        UniNewsApi.comments(_post.id),
       ).wait;
       if (!mounted) return;
       setState(() {
         _post = post;
         _replies = replies;
-        _comments = comments;
         _error = null;
       });
     } catch (error) {
@@ -63,140 +56,207 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  Future<void> _send() async {
-    final text = _input.text.trim();
-    if (text.isEmpty || _sending) return;
-    setState(() => _sending = true);
-    try {
-      await UniNewsApi.addComment(_post.id, text);
-      _input.clear();
-      HapticFeedback.lightImpact();
-      await _refresh();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scroll.hasClients) {
-          _scroll.animateTo(
-            _scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 380),
-            curve: Curves.easeOutCubic,
-          );
-        }
-      });
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Your comment was not posted. Check your connection and try again.',
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _sending = false);
+  /// Goes down to the replies; at once when the phone asks for no animations.
+  void _toReplies() {
+    final end = _scroll.position.maxScrollExtent;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _scroll.jumpTo(end);
+    } else {
+      _scroll.animateTo(
+        end,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
     }
-  }
-
-  Future<void> _signIn() async {
-    final signedIn = await showAuthSheet(
-      context,
-      reason: 'Sign in to comment on this post.',
-    );
-    if (signedIn && mounted) _focus.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    final app = AppScope.of(context);
+    final replies = _replies;
+    final shown = replies == null
+        ? null
+        : _face == null
+        ? replies
+        : replies.where((reply) => reply.emotion == _face).toList();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post'),
+        title: Text(_post.sourceName),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1),
         ),
       ),
       body: PalmBackdrop(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _refresh,
-                backgroundColor: Brand.surfaceHigh,
-                child: ListView(
-                  controller: _scroll,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-                  children: [
-                    PostCard(
-                      post: _post,
-                      detail: true,
-                      onComments: app.signedIn ? _focus.requestFocus : _signIn,
-                    ),
-                    if (_replies case final replies? when replies.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _RepliesPanel(replies: replies),
-                    ],
-                    const SizedBox(height: 12),
-                    _CommentsPanel(
-                      comments: _comments,
-                      failed: _error != null,
-                      onRetry: _refresh,
-                    ),
-                  ],
-                ),
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          backgroundColor: Brand.surfaceHigh,
+          child: ListView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+            children: [
+              const StatusBanner(showDemo: false),
+              PostCard(
+                post: _post,
+                detail: true,
+                onComments: _toReplies,
+                selectedFace: _face,
+                onSelectFace: (face) => setState(() => _face = face),
               ),
-            ),
-            _Composer(
-              app: app,
-              controller: _input,
-              focus: _focus,
-              sending: _sending,
-              onSend: _send,
-              onSignIn: _signIn,
-            ),
-          ],
+              const SizedBox(height: 12),
+              _RepliesPanel(
+                replies: shown,
+                platform: _post.platform,
+                face: faceFor(_face),
+                onShowAll: () => setState(() => _face = null),
+                failed: _error != null,
+                onRetry: _refresh,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// What people replied under the post on X, most liked first. No names: the collector
-/// keeps only the text, the time and the likes.
+/// What people replied under the post on X (or commented under a YouTube video), most liked
+/// first, or only those with the face picked in the summary above. No names: the collector keeps
+/// only the text, the time and the likes.
 class _RepliesPanel extends StatelessWidget {
-  const _RepliesPanel({required this.replies});
+  const _RepliesPanel({
+    required this.replies,
+    required this.platform,
+    required this.face,
+    required this.onShowAll,
+    required this.failed,
+    required this.onRetry,
+  });
 
-  final List<PublicReply> replies;
+  final List<PublicReply>? replies;
+  final String platform;
+  final Face? face;
+  final VoidCallback onShowAll;
+  final bool failed;
+  final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-    decoration: BoxDecoration(
-      color: Brand.surface.withValues(alpha: 0.94),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Brand.line),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Replies on X',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+  Widget build(BuildContext context) {
+    final list = replies;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      decoration: BoxDecoration(
+        color: Brand.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Brand.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // The title and the picked face share a line when they fit, and wrap with large text.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        platform == 'youtube'
+                            ? tr('Comments on YouTube', 'التعليقات على يوتيوب')
+                            : tr('Replies on X', 'الردود على إكس'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (list != null && list.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    _CountBadge(list.length),
+                  ],
+                ],
+              ),
+              // One full-size target that shows all replies again; the cross only shows how.
+              if (face case final face?)
+                ActionChip(
+                  avatar: const Icon(Icons.close_rounded, size: 18),
+                  label: Text(
+                    '${face.emoji} ${face.label}',
+                    semanticsLabel: tr(
+                      'Showing only: ${face.label}',
+                      'المعروض فقط: ${face.label}',
+                    ),
+                  ),
+                  tooltip: tr('Show all replies', 'اعرض كل الردود'),
+                  onPressed: onShowAll,
+                  materialTapTargetSize: MaterialTapTargetSize.padded,
+                ),
+            ],
+          ),
+          if (list == null && !failed)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    semanticsLabel: tr('Loading replies', 'جارٍ تحميل الردود'),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
-            _CountBadge(replies.length),
-          ],
-        ),
-        for (final (index, reply) in replies.indexed) ...[
-          if (index > 0) const Divider(height: 1),
-          _ReplyTile(reply: reply),
+          if (list == null && failed)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: TextButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(
+                  tr(
+                    'Could not load replies. Try again',
+                    'تعذر تحميل الردود. حاول مرة أخرى',
+                  ),
+                ),
+              ),
+            ),
+          if (list != null && list.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 14, 0, 18),
+              child: Text(
+                face != null
+                    ? tr(
+                        'No replies with this face.',
+                        'لا توجد ردود بهذا الوجه.',
+                      )
+                    : platform == 'x' || platform == 'youtube'
+                    ? tr(
+                        'No replies collected for this post.',
+                        'لم تُجمع ردود على هذا المنشور.',
+                      )
+                    : tr(
+                        'Readers cannot reply on this source. When the institution posts the same story on X, its replies show here.',
+                        'لا يمكن الرد على هذا المصدر. عندما تنشر الجهة الخبر نفسه على إكس تظهر ردوده هنا.',
+                      ),
+                style: const TextStyle(color: Brand.muted),
+              ),
+            ),
+          if (list != null)
+            for (final (index, reply) in list.indexed) ...[
+              if (index > 0) const Divider(height: 1),
+              _ReplyTile(reply: reply),
+            ],
         ],
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _ReplyTile extends StatelessWidget {
@@ -205,56 +265,66 @@ class _ReplyTile extends StatelessWidget {
   final PublicReply reply;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    // Likes and date sit on the same side the reply's text starts.
-    child: Directionality(
-      textDirection: directionOf(reply.body),
-      child: _ReplyContent(reply: reply),
-    ),
-  );
-}
-
-class _ReplyContent extends StatelessWidget {
-  const _ReplyContent({required this.reply});
-
-  final PublicReply reply;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Text(
-        reply.body,
-        style: const TextStyle(
-          color: Brand.inkSoft,
-          fontSize: 14.5,
-          height: 1.45,
-        ),
-      ),
-      const SizedBox(height: 6),
-      Row(
-        children: [
-          if (reply.likes > 0) ...[
-            const Icon(
-              Icons.favorite_border_rounded,
-              size: 14,
-              color: Brand.muted,
-            ),
-            const SizedBox(width: 4),
+  Widget build(BuildContext context) {
+    final face = faceFor(reply.emotion);
+    // One item for a screen reader: the reply, its face, its likes and its date.
+    return MergeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Text(
-              '${reply.likes}  ·  ',
-              style: const TextStyle(color: Brand.muted, fontSize: 12),
+              reply.body,
+              textDirection: directionOf(reply.body),
+              style: const TextStyle(
+                color: Brand.inkSoft,
+                fontSize: 14.5,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Face, likes and date share a line, and wrap with large text.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 6,
+              children: [
+                if (face != null) FaceTag(face: face),
+                if (reply.likes > 0)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.favorite_border_rounded,
+                        size: 14,
+                        color: Brand.muted,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${reply.likes}',
+                        semanticsLabel: tr(
+                          '${reply.likes} ${reply.likes == 1 ? 'like' : 'likes'}',
+                          '${reply.likes} إعجاب',
+                        ),
+                        style: const TextStyle(
+                          color: Brand.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                Text(
+                  shortDate(reply.postedAt),
+                  style: const TextStyle(color: Brand.muted, fontSize: 12),
+                ),
+              ],
             ),
           ],
-          Text(
-            shortDate(reply.postedAt),
-            style: const TextStyle(color: Brand.muted, fontSize: 12),
-          ),
-        ],
+        ),
       ),
-    ],
-  );
+    );
+  }
 }
 
 class _CountBadge extends StatelessWidget {
@@ -271,6 +341,10 @@ class _CountBadge extends StatelessWidget {
     ),
     child: Text(
       '$count',
+      semanticsLabel: tr(
+        '$count ${count == 1 ? 'reply' : 'replies'}',
+        '$count من الردود',
+      ),
       style: const TextStyle(
         color: Brand.mint,
         fontSize: 12,
@@ -278,237 +352,4 @@ class _CountBadge extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _CommentsPanel extends StatelessWidget {
-  const _CommentsPanel({
-    required this.comments,
-    required this.failed,
-    required this.onRetry,
-  });
-
-  final List<Comment>? comments;
-  final bool failed;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final list = comments;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-      decoration: BoxDecoration(
-        color: Brand.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Brand.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Comments in the app',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-              ),
-              if (list != null && list.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                _CountBadge(list.length),
-              ],
-            ],
-          ),
-          if (list == null && !failed)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: SizedBox.square(
-                  dimension: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2.2),
-                ),
-              ),
-            ),
-          if (list == null && failed)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: TextButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Could not load comments. Try again'),
-              ),
-            ),
-          if (list != null && list.isEmpty)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 14, 0, 18),
-              child: Text(
-                'No comments yet. Be the first to share your thoughts.',
-                style: TextStyle(color: Brand.muted),
-              ),
-            ),
-          if (list != null)
-            for (final (index, comment) in list.indexed) ...[
-              if (index > 0) const Divider(height: 1),
-              _CommentTile(comment: comment),
-            ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CommentTile extends StatelessWidget {
-  const _CommentTile({required this.comment});
-
-  final Comment comment;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InitialAvatar(name: comment.authorName, seed: comment.userId, size: 34),
-        const SizedBox(width: 11),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                comment.authorName,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 3),
-              SizedBox(
-                width: double.infinity,
-                child: Text(
-                  comment.body,
-                  textDirection: directionOf(comment.body),
-                  style: const TextStyle(
-                    color: Brand.inkSoft,
-                    fontSize: 14.5,
-                    height: 1.45,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// The comment box for members, or a sign in button for guests.
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.app,
-    required this.controller,
-    required this.focus,
-    required this.sending,
-    required this.onSend,
-    required this.onSignIn,
-  });
-
-  final AppState app;
-  final TextEditingController controller;
-  final FocusNode focus;
-  final bool sending;
-  final VoidCallback onSend;
-  final VoidCallback onSignIn;
-
-  @override
-  Widget build(BuildContext context) {
-    final user = app.user;
-    final pill = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(24),
-      borderSide: const BorderSide(color: Brand.line),
-    );
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Brand.surface,
-        border: Border(top: BorderSide(color: Brand.line)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-          child: user == null
-              ? FilledButton.icon(
-                  onPressed: onSignIn,
-                  icon: const Icon(Icons.login_rounded),
-                  label: const Text('Sign in to comment'),
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: InitialAvatar(
-                        name: app.displayName,
-                        seed: user.id,
-                        size: 36,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: controller,
-                        focusNode: focus,
-                        minLines: 1,
-                        maxLines: 5,
-                        maxLength: 1000,
-                        keyboardType: TextInputType.multiline,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          hintText: 'Write a comment',
-                          counterText: '',
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 13,
-                          ),
-                          border: pill,
-                          enabledBorder: pill,
-                          focusedBorder: pill.copyWith(
-                            borderSide: const BorderSide(
-                              color: Brand.mint,
-                              width: 1.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: controller,
-                      builder: (_, value, _) => IconButton.filled(
-                        onPressed: sending || value.text.trim().isEmpty
-                            ? null
-                            : onSend,
-                        tooltip: 'Post comment',
-                        style: IconButton.styleFrom(
-                          backgroundColor: Brand.green,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Brand.surfaceHigher,
-                          disabledForegroundColor: Brand.muted,
-                          fixedSize: const Size(46, 46),
-                        ),
-                        icon: sending
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(Icons.send_rounded),
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
 }

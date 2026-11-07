@@ -5,53 +5,46 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config.dart';
-import 'models.dart';
 
+/// An institution whose new posts notify the phone.
 class SavedNewsAlert {
   const SavedNewsAlert({
     required this.id,
-    required this.filters,
+    required this.organizationId,
+    required this.name,
     required this.since,
     this.enabled = true,
-    this.importantOnly = true,
   });
 
   factory SavedNewsAlert.fromJson(Map<String, dynamic> json) => SavedNewsAlert(
     id: json['id'] as String,
-    filters: FeedFilters.fromJson(
-      Map<String, dynamic>.from(json['filters'] as Map),
-    ),
+    organizationId: (json['organizationId'] as num).toInt(),
+    name: json['name'] as String,
     since: json['since'] as String,
     enabled: json['enabled'] as bool? ?? true,
-    importantOnly: json['importantOnly'] as bool? ?? true,
   );
 
   final String id;
-  final FeedFilters filters;
-  final String since;
+  final int organizationId;
+  final String name; // shown in the alerts list
+  final String since; // only posts collected after this are announced
   final bool enabled;
-  final bool importantOnly;
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'filters': filters.toJson(),
+    'organizationId': organizationId,
+    'name': name,
     'since': since,
     'enabled': enabled,
-    'importantOnly': importantOnly,
   };
 
   SavedNewsAlert withEnabled(bool value) => SavedNewsAlert(
     id: id,
-    filters: filters,
-    importantOnly: importantOnly,
+    organizationId: organizationId,
+    name: name,
     enabled: value,
     since: value ? DateTime.now().toUtc().toIso8601String() : since,
   );
-
-  bool sameFilter(FeedFilters other, bool important) =>
-      importantOnly == important &&
-      setEquals(filters.audiences, other.audiences) &&
-      setEquals(filters.categories, other.categories);
 }
 
 class NewsAlerts extends ChangeNotifier {
@@ -67,12 +60,28 @@ class NewsAlerts extends ChangeNotifier {
   }
 
   static const channel = MethodChannel('weshfatak/news_alerts');
-  static const _key = 'weshfatak.alerts.v1';
+  // v1 held feed filters by audience and category, which the app no longer has.
+  static const _key = 'weshfatak.alerts.v2';
+  static const most = 10;
   final SharedPreferences _prefs;
   List<SavedNewsAlert> _saved = [];
   List<SavedNewsAlert> get saved => List.unmodifiable(_saved);
+
+  /// Alerts need the Android app and a real database: the demo has nothing new to announce.
   bool get supported =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      isConfigured;
+
+  SavedNewsAlert? alertFor(int organizationId) {
+    for (final item in _saved) {
+      if (item.organizationId == organizationId) return item;
+    }
+    return null;
+  }
+
+  bool follows(int organizationId) =>
+      alertFor(organizationId)?.enabled ?? false;
 
   Future<void> sync() async {
     if (!supported) return;
@@ -90,21 +99,21 @@ class NewsAlerts extends ChangeNotifier {
           ) ??
           false);
 
-  Future<void> add(FeedFilters filters, {required bool importantOnly}) async {
-    if (_saved.any((item) => item.sameFilter(filters, importantOnly))) {
-      throw StateError('This filter is already saved.');
-    }
-    if (_saved.length >= 10) {
-      throw StateError('You can save up to 10 news alerts.');
+  /// Starts announcing the institution's new posts, or resumes a paused alert.
+  Future<void> follow(int organizationId, String name) async {
+    final existing = alertFor(organizationId);
+    if (existing != null) return toggle(existing.id, true);
+    if (_saved.length >= most) {
+      throw StateError('You can follow up to $most institutions.');
     }
     final now = DateTime.now().toUtc();
     _saved = [
       ..._saved,
       SavedNewsAlert(
         id: now.microsecondsSinceEpoch.toString(),
-        filters: FeedFilters.fromJson(filters.toJson()),
+        organizationId: organizationId,
+        name: name,
         since: now.toIso8601String(),
-        importantOnly: importantOnly,
       ),
     ];
     await _save();

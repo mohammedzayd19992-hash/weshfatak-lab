@@ -1,0 +1,103 @@
+{
+ "organization": "Shaqra University",
+ "dates": {
+  "note": "الفصل الدراسي الأول 1448هـ. تُضاف مواعيد الفصل الثاني عند إعلانها.",
+  "items": [
+   {
+    "title": "إجازة الخريف",
+    "starts_on": "2026-11-22",
+    "ends_on": "2026-11-26",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "آخر موعد للاعتذار السنوي لطلاب الطب",
+    "starts_on": "2026-12-04",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "آخر موعد للاعتذار عن فصل دراسي أو مقرر",
+    "starts_on": "2026-12-05",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "آخر موعد للانسحاب من الجامعة",
+    "starts_on": "2026-12-06",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "طلبات تغيير التخصص والكلية",
+    "starts_on": "2026-12-07",
+    "ends_on": "2026-12-10",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "آخر موعد لطلبات إعادة الانتظام",
+    "starts_on": "2026-12-19",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "بداية الاختبارات النهائية",
+    "starts_on": "2026-12-20",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "إغلاق الفصل الدراسي واحتساب المعدلات",
+    "starts_on": "2027-01-07",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "بداية إدخال الفرص الإضافية",
+    "starts_on": "2027-01-08",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   },
+   {
+    "title": "إعلان نتائج تغيير التخصص والكلية",
+    "starts_on": "2027-01-11",
+    "source_name": "صحيفة سبق، 13 أغسطس 2026 (التقويم الأكاديمي لجامعة شقراء)",
+    "source_url": "https://sabq.org/article/raleyvc"
+   }
+  ]
+ },
+ "help": {
+  "note": "قنوات الجامعة الرسمية من صفحة تواصل معنا في موقعها.",
+  "items": [
+   {
+    "title": "استفسار أو اقتراح أو شكوى",
+    "detail": "نموذج تواصل معنا في موقع الجامعة.",
+    "link": "https://www.su.edu.sa/ar/contact-us",
+    "source_name": "جامعة شقراء - تواصل معنا",
+    "source_url": "https://www.su.edu.sa/ar/contact-us"
+   },
+   {
+    "title": "الهاتف والرسائل القصيرة",
+    "detail": "رقم الجامعة للمكالمات والرسائل القصيرة.",
+    "link": "tel:0116475075",
+    "source_name": "جامعة شقراء - تواصل معنا",
+    "source_url": "https://www.su.edu.sa/ar/contact-us"
+   },
+   {
+    "title": "البريد الإلكتروني",
+    "detail": "البريد العام للجامعة.",
+    "link": "mailto:info@su.edu.sa",
+    "source_name": "جامعة شقراء - تواصل معنا",
+    "source_url": "https://www.su.edu.sa/ar/contact-us"
+   },
+   {
+    "title": "إن لم يصلك رد",
+    "detail": "خدمة تواصل في وزارة التعليم تشمل الجامعات، وتصدر لك تذكرة تتابعها.",
+    "link": "https://tawasul.moe.gov.sa/",
+    "source_name": "وزارة التعليم - خدمة تواصل",
+    "source_url": "https://www.moe.gov.sa/ar/contactus/pages/tawasul.aspx"
+   }
+  ]
+ }
+}

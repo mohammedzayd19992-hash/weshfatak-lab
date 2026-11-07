@@ -17,7 +17,10 @@ Map<String, dynamic> card({Map<String, dynamic>? note}) => {
 
 const note = {
   'summary': 'طرح أغلب المعلقين أسئلة عن دعم الأسر والمفاضلة الوظيفية.',
-  'key_points': ['دعم مجاني لأسر الطلاب', 'المفاضلة بالنقاط دون حد أدنى للمعدل'],
+  'key_points': [
+    'دعم مجاني لأسر الطلاب',
+    'المفاضلة بالنقاط دون حد أدنى للمعدل',
+  ],
   'replies_read': 7,
   'model': 'claude-opus-5-5',
 };
@@ -37,35 +40,65 @@ void main() {
       'body': 'فيه دوام ولا بكره',
       'like_count': 2,
       'posted_at': '2026-10-25T10:34:40+00:00',
+      'emotion': 'asking',
     });
     expect(reply.body, 'فيه دوام ولا بكره');
     expect(reply.likes, 2);
+    expect(reply.emotion, 'asking');
     expect(reply.postedAt.toUtc(), DateTime.utc(2026, 10, 25, 10, 34, 40));
   });
 
-  testWidgets('The note fits a narrow phone and shows the points only in full', (
+  testWidgets(
+    'The faces sit inside the note: two in the list, every one to tap in full',
+    (tester) async {
+      final parsed = CommunityNote.fromMap(note);
+      const faces = {'asking': 4, 'happy': 2, 'angry': 1};
+      String? picked;
+      Future<void> show({required bool detail}) => tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: SingleChildScrollView(
+                child: CommunityNoteBox(
+                  note: parsed,
+                  emotions: faces,
+                  detail: detail,
+                  onSelect: (face) => picked = face,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await show(detail: false);
+      expect(find.text('What people said'), findsOneWidget);
+      expect(find.text('from 7 replies'), findsOneWidget);
+      expect(find.text('🤔 57% Asking  ·  😄 29% Happy'), findsOneWidget);
+      expect(find.text('Angry'), findsNothing);
+      expect(find.text('دعم مجاني لأسر الطلاب'), findsNothing);
+      expect(tester.takeException(), isNull);
+
+      await show(detail: true);
+      expect(find.text('دعم مجاني لأسر الطلاب'), findsOneWidget);
+      await tester.tap(find.text('Angry'));
+      expect(picked, 'angry');
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Faces show before Claude has written the summary', (
     tester,
   ) async {
-    final parsed = CommunityNote.fromMap(note);
-    Future<void> show({required bool detail}) => tester.pumpWidget(
-      MaterialApp(
+    await tester.pumpWidget(
+      const MaterialApp(
         home: Scaffold(
-          body: SizedBox(
-            width: 300,
-            child: CommunityNoteBox(note: parsed, detail: detail),
-          ),
+          body: CommunityNoteBox(emotions: {'happy': 2, 'asking': 1}),
         ),
       ),
     );
-
-    await show(detail: false);
-    expect(find.text('Community note'), findsOneWidget);
-    expect(find.text('from 7 replies'), findsOneWidget);
-    expect(find.text('دعم مجاني لأسر الطلاب'), findsNothing);
-    expect(tester.takeException(), isNull);
-
-    await show(detail: true);
-    expect(find.text('دعم مجاني لأسر الطلاب'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(find.text('from 3 replies'), findsOneWidget);
+    expect(find.textContaining('67% Happy'), findsOneWidget);
   });
 }

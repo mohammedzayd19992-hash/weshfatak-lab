@@ -20,3 +20,10 @@ insert into public.tags (name, tag_group) values
   ('Activities',           'category'),
   ('Exams',                'category');
 
+-- Accounts created before this schema get a profile too (new accounts get one automatically).
+insert into public.profiles (user_id, display_name)
+select id, left(coalesce(nullif(trim(raw_user_meta_data ->> 'display_name'), ''),
+                         nullif(split_part(email, '@', 1), ''),
+                         'Member'), 60)
+from auth.users
+on conflict (user_id) do nothing;
